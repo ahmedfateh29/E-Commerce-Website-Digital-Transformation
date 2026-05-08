@@ -1,6 +1,15 @@
 import Link from "next/link"
-import { LayoutDashboard, Package, ShoppingCart, FolderOpen, ArrowLeft } from "lucide-react"
+import { redirect } from "next/navigation"
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  FolderOpen,
+  ArrowLeft,
+} from "lucide-react"
 import type { ReactNode } from "react"
+import { createClient } from "@/lib/supabase/server"
+import { SignOutButton } from "@/components/auth/sign-out-button"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -9,7 +18,26 @@ const navItems = [
   { href: "/admin/categories", label: "Categories", icon: FolderOpen },
 ]
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect("/login?next=%2Fadmin")
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle()
+
+  if (profile?.role !== "admin") {
+    redirect("/")
+  }
+
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
@@ -39,6 +67,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               Back to Store
             </Link>
           </div>
+          <SignOutButton className="mt-3 w-full justify-start gap-3 rounded-lg px-3 py-2 font-medium text-muted-foreground hover:bg-accent hover:text-foreground hover:no-underline" />
         </nav>
       </aside>
 
@@ -49,18 +78,21 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <Link href="/admin" className="text-lg font-semibold">
             Haven Admin
           </Link>
-          <nav className="flex items-center gap-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
-              >
-                <item.icon className="h-5 w-5" />
-                <span className="sr-only">{item.label}</span>
-              </Link>
-            ))}
-          </nav>
+          <div className="flex items-center gap-2">
+            <nav className="flex items-center gap-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span className="sr-only">{item.label}</span>
+                </Link>
+              ))}
+            </nav>
+            <SignOutButton variant="outline" size="sm" />
+          </div>
         </header>
 
         {/* Page Content */}
