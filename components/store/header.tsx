@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ShoppingBag, Menu, X, Search } from "lucide-react"
+import { ShoppingBag, Menu, X, Search, LayoutDashboard } from "lucide-react"
 import { useState } from "react"
 import { useCart } from "@/lib/cart-context"
 import { Button } from "@/components/ui/button"
@@ -14,12 +14,15 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { CartSheet } from "./cart-sheet"
+import { SignOutButton } from "@/components/auth/sign-out-button"
 
 interface HeaderProps {
   categories: { name: string; slug: string }[]
+  userEmail: string | null
+  isAdmin: boolean
 }
 
-export function Header({ categories }: HeaderProps) {
+export function Header({ categories, userEmail, isAdmin }: HeaderProps) {
   const { itemCount } = useCart()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -64,6 +67,35 @@ export function Header({ categories }: HeaderProps) {
                   className="w-48 pl-8 lg:w-64"
                 />
               </form>
+            </div>
+
+            {/* Account */}
+            <div className="hidden items-center gap-1 sm:flex">
+              {userEmail ? (
+                <>
+                  {isAdmin && (
+                    <Button variant="outline" size="sm" className="h-9 gap-1" asChild>
+                      <Link href="/admin">
+                        <LayoutDashboard className="size-3.5" />
+                        Admin
+                      </Link>
+                    </Button>
+                  )}
+                  <span className="max-w-[140px] truncate px-2 text-xs text-muted-foreground">
+                    {userEmail}
+                  </span>
+                  <SignOutButton className="h-9 shrink-0" />
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" size="sm" className="h-9" asChild>
+                    <Link href="/login">Sign in</Link>
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-9 px-3" asChild>
+                    <Link href="/register">Register</Link>
+                  </Button>
+                </>
+              )}
             </div>
 
             {/* Cart */}
@@ -124,6 +156,42 @@ export function Header({ categories }: HeaderProps) {
                       </Link>
                     ))}
                   </nav>
+                  <div className="border-t border-border pt-4">
+                    <p className="mb-3 px-1 text-xs font-medium text-muted-foreground">
+                      Account
+                    </p>
+                    {userEmail ? (
+                      <div className="flex flex-col gap-2">
+                        {isAdmin && (
+                          <Link
+                            href="/admin"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                          >
+                            Admin dashboard
+                          </Link>
+                        )}
+                        <SignOutButton className="justify-start px-3" />
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        <Link
+                          href="/login"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                        >
+                          Sign in
+                        </Link>
+                        <Link
+                          href="/register"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                        >
+                          Register
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
