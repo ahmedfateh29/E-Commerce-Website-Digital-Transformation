@@ -49,6 +49,9 @@ export function RegisterForm() {
     }
 
     if (data.session) {
+      await fetch("/auth/ensure-profile", {
+        method: "POST",
+      })
       router.replace("/")
       router.refresh()
     } else {

@@ -34,6 +34,15 @@ export function CheckoutForm() {
     const supabase = createClient()
 
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        router.push("/login?next=%2Fcheckout")
+        return
+      }
+
       // Create the order
       const { data: order, error: orderError } = await supabase
         .from("orders")

@@ -55,6 +55,10 @@ export function LoginForm({ nextPath }: LoginFormProps) {
       return
     }
 
+    await fetch("/auth/ensure-profile", {
+      method: "POST",
+    })
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
